@@ -454,7 +454,7 @@ This project is licensed under the **MIT License**.
 
 ## 📬 Contact
 
-**Your Name**
+**Ankit Prajapati**
 - Email: aankit1645@gmail.com
 - GitHub: [github.com/ankitprajapati-dev](https://github.com/ankitprajapati-dev)
 
