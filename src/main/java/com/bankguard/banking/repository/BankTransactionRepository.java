@@ -14,10 +14,15 @@ import java.util.Optional;
 public interface BankTransactionRepository extends JpaRepository<BankTransaction, Long> {
     Optional<BankTransaction> findByTransactionReference(String reference);
 
-    @Query("SELECT t FROM BankTransaction t WHERE " +
-           "t.sourceAccount.customer.id = :customerId OR " +
-           "t.destinationAccount.customer.id = :customerId " +
-           "ORDER BY t.createdAt DESC")
+    @Query("""
+    	    SELECT t
+    	    FROM BankTransaction t
+    	    LEFT JOIN t.sourceAccount sa
+    	    LEFT JOIN t.destinationAccount da
+    	    WHERE sa.customer.id = :customerId
+    	       OR da.customer.id = :customerId
+    	    ORDER BY t.createdAt DESC
+    	    """)
     List<BankTransaction> findTransactionsByCustomerId(@Param("customerId") Long customerId);
 
     @Query(value = "SELECT * FROM bank_transactions WHERE " +

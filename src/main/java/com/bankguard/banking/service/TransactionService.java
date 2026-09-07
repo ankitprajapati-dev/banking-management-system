@@ -141,10 +141,15 @@ public class TransactionService {
     @Transactional(readOnly = true)
     public List<TransactionResponse> getMyTransactions(String username) {
         Customer customer = getCustomerByUsername(username);
-        return transactionRepository.findTransactionsByCustomerId(customer.getId())
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+        log.info("Fetching all transactions for customer: {}", customer.getId());
+        
+        List<BankTransaction> transactions = transactionRepository
+            .findTransactionsByCustomerId(customer.getId());
+        
+        log.info("Found {} transactions", transactions.size());
+        return transactions.stream()
+            .map(this::mapToResponse)
+            .toList();
     }
 
     @Transactional(readOnly = true)
