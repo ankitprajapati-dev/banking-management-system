@@ -15,42 +15,50 @@ import java.util.List;
 @RequestMapping("/api/beneficiaries")
 public class BeneficiaryController {
 
-	private final BeneficiaryService beneficiaryService;
+    private final BeneficiaryService beneficiaryService;
 
-	public BeneficiaryController(BeneficiaryService beneficiaryService) {
-		this.beneficiaryService = beneficiaryService;
-	}
+    public BeneficiaryController(BeneficiaryService beneficiaryService) {
+        this.beneficiaryService = beneficiaryService;
+    }
 
-	@PostMapping
-	public ResponseEntity<BeneficiaryResponse> createBeneficiary(@Valid @RequestBody BeneficiaryRequest request,
-			Authentication authentication) {
-		String username = authentication.getName();
-		return ResponseEntity.status(HttpStatus.CREATED).body(beneficiaryService.createBeneficiary(username, request));
-	}
+    @PostMapping
+    public ResponseEntity<BeneficiaryResponse> createBeneficiary(
+            @Valid @RequestBody BeneficiaryRequest request,
+            Authentication authentication) {
+        String username = authentication.getName();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(beneficiaryService.createBeneficiary(username, request));
+    }
 
-	@GetMapping
-	public ResponseEntity<List<BeneficiaryResponse>> getMyBeneficiaries(Authentication authentication) {
-		String username = authentication.getName();
-		return ResponseEntity.ok(beneficiaryService.getMyBeneficiaries(username));
-	}
+    @GetMapping
+    public ResponseEntity<List<BeneficiaryResponse>> getMyBeneficiaries(Authentication authentication) {
+        String username = authentication.getName();
+        return ResponseEntity.ok(beneficiaryService.getMyBeneficiaries(username));
+    }
 
-	@GetMapping("/{id}")
-	public ResponseEntity<BeneficiaryResponse> getMyBeneficiary(@PathVariable Long id, Authentication authentication) {
-		String username = authentication.getName();
-		return ResponseEntity.ok(beneficiaryService.getMyBeneficiary(id, username));
-	}
+    @GetMapping("/{id}")
+    public ResponseEntity<BeneficiaryResponse> getMyBeneficiary(
+            @PathVariable Long id,
+            Authentication authentication) {
+        String username = authentication.getName();
+        return ResponseEntity.ok(beneficiaryService.getMyBeneficiary(id, username));
+    }
 
-	@PutMapping("/{id}")
-	public ResponseEntity<BeneficiaryResponse> updateBeneficiary(@PathVariable Long id,
-			@Valid @RequestBody BeneficiaryRequest request, Authentication authentication) {
-		String username = authentication.getName();
-		return ResponseEntity.ok(beneficiaryService.updateBeneficiary(id, username, request));
-	}
+    @PutMapping("/{id}")
+    public ResponseEntity<BeneficiaryResponse> updateBeneficiary(
+            @PathVariable Long id,
+            @Valid @RequestBody BeneficiaryRequest request,
+            Authentication authentication) {
+        String username = authentication.getName();
+        return ResponseEntity.ok(beneficiaryService.updateBeneficiary(id, username, request));
+    }
 
-	@DeleteMapping("/{id}")
-	public ResponseEntity<String> deleteBeneficiary(@PathVariable Long id, Authentication authentication) {
-		String username = authentication.getName();
-		beneficiaryService.deleteBeneficiary(id, username);
-		return ResponseEntity.ok("Beneficiary deleted successfully");
-	}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteBeneficiary(
+            @PathVariable Long id,
+            Authentication authentication) {
+        String username = authentication.getName();
+        beneficiaryService.deleteBeneficiary(id, username);
+        return ResponseEntity.ok("Beneficiary deleted successfully");
+    }
 }

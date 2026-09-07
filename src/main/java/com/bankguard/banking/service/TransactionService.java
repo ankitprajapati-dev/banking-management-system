@@ -21,271 +21,230 @@ import java.util.UUID;
 @Service
 public class TransactionService {
 
-	private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
-	private static final BigDecimal MINIMUM_BALANCE = new BigDecimal("500.00");
-	private static final BigDecimal DAILY_TRANSFER_LIMIT = new BigDecimal("100000.00");
+    private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
+    private static final BigDecimal MINIMUM_BALANCE = new BigDecimal("500.00");
+    private static final BigDecimal DAILY_TRANSFER_LIMIT = new BigDecimal("100000.00");
 
-	private final AccountRepository accountRepository;
-	private final BankTransactionRepository transactionRepository;
-	private final CustomerRepository customerRepository;
-	private final NotificationService notificationService;
+    private final AccountRepository accountRepository;
+    private final BankTransactionRepository transactionRepository;
+    private final CustomerRepository customerRepository;
+    private final NotificationService notificationService;
 
-	public TransactionService(AccountRepository accountRepository, BankTransactionRepository transactionRepository,
-			CustomerRepository customerRepository, NotificationService notificationService) {
-		this.accountRepository = accountRepository;
-		this.transactionRepository = transactionRepository;
-		this.customerRepository = customerRepository;
-		this.notificationService = notificationService;
-	}
+    public TransactionService(AccountRepository accountRepository,
+                              BankTransactionRepository transactionRepository,
+                              CustomerRepository customerRepository,
+                              NotificationService notificationService) {
+        this.accountRepository = accountRepository;
+        this.transactionRepository = transactionRepository;
+        this.customerRepository = customerRepository;
+        this.notificationService = notificationService;
+    }
 
-	// =========================================================
-	// DEPOSIT
-	// =========================================================
+    @Transactional
+    public TransactionResponse deposit(String username, TransactionRequest request) {
+        log.info("Processing deposit for user: {}", username);
 
-	@Transactional
-	public TransactionResponse deposit(String username, TransactionRequest request) {
-		log.info("💰 Processing deposit for user: {}", username);
+        Customer customer = getCustomerByUsername(username);
+        Account account = validateAccountOwnership(request.getAccountId(), customer);
+        validateActiveAccount(account, "Only active accounts can receive deposits");
 
-		Customer customer = getCustomerByUsername(username);
-		Account account = validateAccountOwnership(request.getAccountId(), customer);
-		validateActiveAccount(account, "Only active accounts can receive deposits");
+        account.setBalance(account.getBalance().add(request.getAmount()));
 
-		// Update balance
-		account.setBalance(account.getBalance().add(request.getAmount()));
+        BankTransaction transaction = createTransaction(
+                null,
+                account,
+                request.getAmount(),
+                TransactionType.DEPOSIT,
+                TransactionStatus.COMPLETED,
+                request.getDescription()
+        );
 
-		// Create transaction with description
-		BankTransaction transaction = createTransaction(null, account, request.getAmount(), TransactionType.DEPOSIT,
-				TransactionStatus.COMPLETED, request.getDescription());
+        return mapToResponse(transaction);
+    }
 
-		// Send notification
-		notificationService.sendTransactionAlert(customer.getEmail(), customer.getFullName(),
-				mapToResponse(transaction));
+    @Transactional
+    public TransactionResponse withdraw(String username, TransactionRequest request) {
+        log.info("Processing withdrawal for user: {}", username);
 
-		log.info("✅ Deposit completed: ₹{} → {}", request.getAmount(), account.getAccountNumber());
-		return mapToResponse(transaction);
-	}
+        Customer customer = getCustomerByUsername(username);
+        Account account = validateAccountOwnership(request.getAccountId(), customer);
+        validateActiveAccount(account, "Only active accounts can be used for withdrawal");
 
-	// =========================================================
-	// WITHDRAWAL
-	// =========================================================
+        if (account.getBalance().compareTo(request.getAmount()) < 0) {
+            throw new BusinessException("Insufficient balance");
+        }
 
-	@Transactional
-	public TransactionResponse withdraw(String username, TransactionRequest request) {
-		log.info("💰 Processing withdrawal for user: {}", username);
+        if (account.getAccountType() == AccountType.SAVINGS) {
+            BigDecimal newBalance = account.getBalance().subtract(request.getAmount());
+            if (newBalance.compareTo(MINIMUM_BALANCE) < 0) {
+                throw new BusinessException("Minimum balance of ₹" + MINIMUM_BALANCE +
+                        " required for Savings account");
+            }
+        }
 
-		Customer customer = getCustomerByUsername(username);
-		Account account = validateAccountOwnership(request.getAccountId(), customer);
-		validateActiveAccount(account, "Only active accounts can be used for withdrawal");
+        account.setBalance(account.getBalance().subtract(request.getAmount()));
 
-		// Check sufficient balance
-		if (account.getBalance().compareTo(request.getAmount()) < 0) {
-			throw new BusinessException("Insufficient balance");
-		}
+        BankTransaction transaction = createTransaction(
+                account,
+                null,
+                request.getAmount(),
+                TransactionType.WITHDRAWAL,
+                TransactionStatus.COMPLETED,
+                request.getDescription()
+        );
 
-		// Check minimum balance for savings account
-		if (account.getAccountType() == AccountType.SAVINGS) {
-			BigDecimal newBalance = account.getBalance().subtract(request.getAmount());
-			if (newBalance.compareTo(MINIMUM_BALANCE) < 0) {
-				throw new BusinessException("Minimum balance of ₹" + MINIMUM_BALANCE + " required for Savings account");
-			}
-		}
+        return mapToResponse(transaction);
+    }
 
-		// Update balance
-		account.setBalance(account.getBalance().subtract(request.getAmount()));
+    @Transactional
+    public TransactionResponse transfer(String username, TransactionRequest request) {
+        log.info("Processing transfer for user: {}", username);
 
-		// Create transaction with description
-		BankTransaction transaction = createTransaction(account, null, request.getAmount(), TransactionType.WITHDRAWAL,
-				TransactionStatus.COMPLETED, request.getDescription());
+        Customer customer = getCustomerByUsername(username);
 
-		// Send notification
-		notificationService.sendTransactionAlert(customer.getEmail(), customer.getFullName(),
-				mapToResponse(transaction));
+        Account sourceAccount = validateAccountOwnership(request.getAccountId(), customer);
+        validateActiveAccount(sourceAccount, "Source account is not active");
 
-		log.info("✅ Withdrawal completed: ₹{} from {}", request.getAmount(), account.getAccountNumber());
-		return mapToResponse(transaction);
-	}
+        if (request.getDestinationAccountId() == null) {
+            throw new BusinessException("Destination account is required");
+        }
 
-	// =========================================================
-	// TRANSFER
-	// =========================================================
+        Account destinationAccount = accountRepository.findById(request.getDestinationAccountId())
+                .orElseThrow(() -> new ResourceNotFoundException("Destination account not found"));
+        validateActiveAccount(destinationAccount, "Destination account is not active");
 
-	@Transactional
-	public TransactionResponse transfer(String username, TransactionRequest request) {
-		log.info("💰 Processing transfer for user: {}", username);
+        if (sourceAccount.getId().equals(destinationAccount.getId())) {
+            throw new BusinessException("Cannot transfer to same account");
+        }
 
-		Customer customer = getCustomerByUsername(username);
+        if (sourceAccount.getBalance().compareTo(request.getAmount()) < 0) {
+            throw new BusinessException("Insufficient balance");
+        }
 
-		// Validate source account
-		Account sourceAccount = validateAccountOwnership(request.getAccountId(), customer);
-		validateActiveAccount(sourceAccount, "Source account is not active");
+        validateDailyLimit(customer.getId(), request.getAmount());
 
-		// Validate destination account
-		if (request.getDestinationAccountId() == null) {
-			throw new BusinessException("Destination account is required");
-		}
+        sourceAccount.setBalance(sourceAccount.getBalance().subtract(request.getAmount()));
+        destinationAccount.setBalance(destinationAccount.getBalance().add(request.getAmount()));
 
-		Account destinationAccount = accountRepository.findById(request.getDestinationAccountId())
-				.orElseThrow(() -> new ResourceNotFoundException("Destination account not found"));
-		validateActiveAccount(destinationAccount, "Destination account is not active");
+        BankTransaction transaction = createTransaction(
+                sourceAccount,
+                destinationAccount,
+                request.getAmount(),
+                TransactionType.TRANSFER,
+                TransactionStatus.COMPLETED,
+                request.getDescription()
+        );
 
-		// Prevent self-transfer
-		if (sourceAccount.getId().equals(destinationAccount.getId())) {
-			throw new BusinessException("Cannot transfer to same account");
-		}
+        return mapToResponse(transaction);
+    }
 
-		// Check sufficient balance
-		if (sourceAccount.getBalance().compareTo(request.getAmount()) < 0) {
-			throw new BusinessException("Insufficient balance");
-		}
+    @Transactional(readOnly = true)
+    public List<TransactionResponse> getMyTransactions(String username) {
+        Customer customer = getCustomerByUsername(username);
+        return transactionRepository.findTransactionsByCustomerId(customer.getId())
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
 
-		// Check daily limit
-		validateDailyLimit(customer.getId(), request.getAmount());
+    @Transactional(readOnly = true)
+    public List<TransactionResponse> getMiniStatement(String username) {
+        Customer customer = getCustomerByUsername(username);
+        return transactionRepository.findLast10TransactionsByCustomerId(customer.getId())
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
 
-		// Perform transfer
-		sourceAccount.setBalance(sourceAccount.getBalance().subtract(request.getAmount()));
-		destinationAccount.setBalance(destinationAccount.getBalance().add(request.getAmount()));
+    @Transactional(readOnly = true)
+    public TransactionResponse getMyTransaction(Long transactionId, String username) {
+        Customer customer = getCustomerByUsername(username);
+        BankTransaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
 
-		// Create transaction with description
-		BankTransaction transaction = createTransaction(sourceAccount, destinationAccount, request.getAmount(),
-				TransactionType.TRANSFER, TransactionStatus.COMPLETED, request.getDescription());
+        boolean belongsToCustomer = false;
+        if (transaction.getSourceAccount() != null &&
+                transaction.getSourceAccount().getCustomer().getId().equals(customer.getId())) {
+            belongsToCustomer = true;
+        }
+        if (transaction.getDestinationAccount() != null &&
+                transaction.getDestinationAccount().getCustomer().getId().equals(customer.getId())) {
+            belongsToCustomer = true;
+        }
 
-		// Send notifications
-		TransactionResponse response = mapToResponse(transaction);
-		notificationService.sendTransactionAlert(customer.getEmail(), customer.getFullName(), response);
+        if (!belongsToCustomer) {
+            throw new ResourceNotFoundException("Transaction not found");
+        }
 
-		// Notify destination account owner (if different customer)
-		Customer destCustomer = destinationAccount.getCustomer();
-		if (!destCustomer.getId().equals(customer.getId())) {
-			notificationService.sendTransactionAlert(destCustomer.getEmail(), destCustomer.getFullName(), response);
-		}
+        return mapToResponse(transaction);
+    }
 
-		log.info("✅ Transfer completed: {} → {}", sourceAccount.getAccountNumber(),
-				destinationAccount.getAccountNumber());
-		return response;
-	}
+    private void validateDailyLimit(Long customerId, BigDecimal amount) {
+        LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+        List<BankTransaction> todayTransactions = transactionRepository
+                .findTransactionsByCustomerIdAndDateRange(customerId, startOfDay, LocalDateTime.now());
 
-	// =========================================================
-	// GET TRANSACTIONS
-	// =========================================================
+        BigDecimal todayTotal = todayTransactions.stream()
+                .filter(t -> t.getTransactionType() == TransactionType.TRANSFER)
+                .map(BankTransaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-	@Transactional(readOnly = true)
-	public List<TransactionResponse> getMyTransactions(String username) {
-		Customer customer = getCustomerByUsername(username);
-		return transactionRepository.findTransactionsByCustomerId(customer.getId()).stream().map(this::mapToResponse)
-				.toList();
-	}
+        if (todayTotal.add(amount).compareTo(DAILY_TRANSFER_LIMIT) > 0) {
+            throw new BusinessException("Daily transfer limit of ₹" + DAILY_TRANSFER_LIMIT + " exceeded");
+        }
+    }
 
-	@Transactional(readOnly = true)
-	public List<TransactionResponse> getMiniStatement(String username) {
-		Customer customer = getCustomerByUsername(username);
-		return transactionRepository.findLast10TransactionsByCustomerId(customer.getId()).stream()
-				.map(this::mapToResponse).toList();
-	}
+    private Customer getCustomerByUsername(String username) {
+        return customerRepository.findByUserUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+    }
 
-	@Transactional(readOnly = true)
-	public TransactionResponse getMyTransaction(Long transactionId, String username) {
-		Customer customer = getCustomerByUsername(username);
-		BankTransaction transaction = transactionRepository.findById(transactionId)
-				.orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
+    private Account validateAccountOwnership(Long accountId, Customer customer) {
+        return accountRepository.findByIdAndCustomerId(accountId, customer.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+    }
 
-		boolean belongsToCustomer = false;
-		if (transaction.getSourceAccount() != null
-				&& transaction.getSourceAccount().getCustomer().getId().equals(customer.getId())) {
-			belongsToCustomer = true;
-		}
-		if (transaction.getDestinationAccount() != null
-				&& transaction.getDestinationAccount().getCustomer().getId().equals(customer.getId())) {
-			belongsToCustomer = true;
-		}
+    private void validateActiveAccount(Account account, String message) {
+        if (account.getStatus() != AccountStatus.ACTIVE) {
+            throw new BusinessException(message);
+        }
+    }
 
-		if (!belongsToCustomer) {
-			throw new ResourceNotFoundException("Transaction not found");
-		}
+    private BankTransaction createTransaction(Account source, Account destination,
+                                              BigDecimal amount, TransactionType type,
+                                              TransactionStatus status, String description) {
+        BankTransaction transaction = new BankTransaction();
+        transaction.setTransactionReference("TXN" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase());
+        transaction.setAmount(amount);
+        transaction.setTransactionType(type);
+        transaction.setStatus(status);
+        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setSourceAccount(source);
+        transaction.setDestinationAccount(destination);
+        transaction.setDescription(description);
 
-		return mapToResponse(transaction);
-	}
+        return transactionRepository.save(transaction);
+    }
 
-	// =========================================================
-	// VALIDATION HELPERS
-	// =========================================================
+    private TransactionResponse mapToResponse(BankTransaction transaction) {
+        TransactionResponse response = new TransactionResponse();
+        response.setId(transaction.getId());
+        response.setTransactionReference(transaction.getTransactionReference());
+        response.setAmount(transaction.getAmount());
+        response.setTransactionType(transaction.getTransactionType());
+        response.setStatus(transaction.getStatus());
+        response.setCreatedAt(transaction.getCreatedAt());
+        response.setDescription(transaction.getDescription());
 
-	private void validateDailyLimit(Long customerId, BigDecimal amount) {
-		LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
-		List<BankTransaction> todayTransactions = transactionRepository
-				.findTransactionsByCustomerIdAndDateRange(customerId, startOfDay, LocalDateTime.now());
+        if (transaction.getSourceAccount() != null) {
+            response.setSourceAccountId(transaction.getSourceAccount().getId());
+            response.setSourceAccountNumber(transaction.getSourceAccount().getAccountNumber());
+        }
+        if (transaction.getDestinationAccount() != null) {
+            response.setDestinationAccountId(transaction.getDestinationAccount().getId());
+            response.setDestinationAccountNumber(transaction.getDestinationAccount().getAccountNumber());
+        }
 
-		BigDecimal todayTotal = todayTransactions.stream()
-				.filter(t -> t.getTransactionType() == TransactionType.TRANSFER).map(BankTransaction::getAmount)
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
-
-		if (todayTotal.add(amount).compareTo(DAILY_TRANSFER_LIMIT) > 0) {
-			throw new BusinessException("Daily transfer limit of ₹" + DAILY_TRANSFER_LIMIT + " exceeded");
-		}
-	}
-
-	private Customer getCustomerByUsername(String username) {
-		return customerRepository.findByUserUsername(username)
-				.orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-	}
-
-	private Account validateAccountOwnership(Long accountId, Customer customer) {
-		return accountRepository.findByIdAndCustomerId(accountId, customer.getId())
-				.orElseThrow(() -> new ResourceNotFoundException("Account not found"));
-	}
-
-	private void validateActiveAccount(Account account, String message) {
-		if (account.getStatus() != AccountStatus.ACTIVE) {
-			throw new BusinessException(message);
-		}
-	}
-
-	// =========================================================
-	// TRANSACTION CREATION
-	// =========================================================
-
-	private BankTransaction createTransaction(Account source, Account destination, BigDecimal amount,
-			TransactionType type, TransactionStatus status, String description) {
-		BankTransaction transaction = new BankTransaction();
-		transaction.setTransactionReference(
-				"TXN" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase());
-		transaction.setAmount(amount);
-		transaction.setTransactionType(type);
-		transaction.setStatus(status);
-		transaction.setCreatedAt(LocalDateTime.now());
-		transaction.setSourceAccount(source);
-		transaction.setDestinationAccount(destination);
-
-		// ✅ YEH LINE IMPORTANT HAI - Description set karna
-		transaction.setDescription(description);
-
-		return transactionRepository.save(transaction);
-	}
-
-	// =========================================================
-	// MAP TO RESPONSE
-	// =========================================================
-
-	private TransactionResponse mapToResponse(BankTransaction transaction) {
-		TransactionResponse response = new TransactionResponse();
-		response.setId(transaction.getId());
-		response.setTransactionReference(transaction.getTransactionReference());
-		response.setAmount(transaction.getAmount());
-		response.setTransactionType(transaction.getTransactionType());
-		response.setStatus(transaction.getStatus());
-		response.setCreatedAt(transaction.getCreatedAt());
-
-		// ✅ YEH LINE IMPORTANT HAI - Description set karna
-		response.setDescription(transaction.getDescription());
-
-		if (transaction.getSourceAccount() != null) {
-			response.setSourceAccountId(transaction.getSourceAccount().getId());
-			response.setSourceAccountNumber(transaction.getSourceAccount().getAccountNumber());
-		}
-		if (transaction.getDestinationAccount() != null) {
-			response.setDestinationAccountId(transaction.getDestinationAccount().getId());
-			response.setDestinationAccountNumber(transaction.getDestinationAccount().getAccountNumber());
-		}
-
-		return response;
-	}
+        return response;
+    }
 }

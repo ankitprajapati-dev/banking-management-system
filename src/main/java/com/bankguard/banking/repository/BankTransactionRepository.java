@@ -1,8 +1,6 @@
 package com.bankguard.banking.repository;
 
 import com.bankguard.banking.entity.BankTransaction;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,8 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface BankTransactionRepository extends JpaRepository<BankTransaction, Long> {
-   
-	Optional<BankTransaction> findByTransactionReference(String reference);
+    Optional<BankTransaction> findByTransactionReference(String reference);
 
     @Query("SELECT t FROM BankTransaction t WHERE " +
            "t.sourceAccount.customer.id = :customerId OR " +
@@ -38,9 +35,6 @@ public interface BankTransactionRepository extends JpaRepository<BankTransaction
             @Param("customerId") Long customerId,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate);
-
-    Page<BankTransaction> findBySourceAccountCustomerIdOrDestinationAccountCustomerId(
-            Long sourceCustomerId, Long destinationCustomerId, Pageable pageable);
 
     boolean existsByTransactionReference(String reference);
 }

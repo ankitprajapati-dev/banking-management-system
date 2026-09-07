@@ -23,7 +23,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
 
     private static final List<String> PUBLIC_PATHS = Arrays.asList(
-            "/api/auth/", "/api/health", "/swagger-ui/", "/v3/api-docs/"
+        "/auth/",
+        "/health",
+        "/swagger-ui/",
+        "/v3/api-docs/"
     );
 
     public JwtAuthenticationFilter(JwtService jwtService,
@@ -38,9 +41,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String path = request.getRequestURI();
+        String path = request.getRequestURI()
+        		.substring(request.getContextPath().length());
 
-        // Skip public endpoints
         if (PUBLIC_PATHS.stream().anyMatch(path::startsWith)) {
             filterChain.doFilter(request, response);
             return;

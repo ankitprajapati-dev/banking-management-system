@@ -16,45 +16,41 @@ import java.time.LocalDateTime;
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
-    private final CustomerRepository customerRepository;
-    private final PasswordEncoder passwordEncoder;
+	private final UserRepository userRepository;
+	private final CustomerRepository customerRepository;
+	private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository,
-                       CustomerRepository customerRepository,
-                       PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.customerRepository = customerRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+	public UserService(UserRepository userRepository, CustomerRepository customerRepository,
+			PasswordEncoder passwordEncoder) {
+		this.userRepository = userRepository;
+		this.customerRepository = customerRepository;
+		this.passwordEncoder = passwordEncoder;
+	}
 
-    @Transactional
-    public void register(RegisterRequest request) {
-        // Validate unique constraints
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new BusinessException("Username already exists");
-        }
-        if (customerRepository.existsByEmail(request.getEmail())) {
-            throw new BusinessException("Email already exists");
-        }
-        if (customerRepository.existsByPhone(request.getPhone())) {
-            throw new BusinessException("Phone number already exists");
-        }
+	@Transactional
+	public void register(RegisterRequest request) {
+		if (userRepository.existsByUsername(request.getUsername())) {
+			throw new BusinessException("Username already exists");
+		}
+		if (customerRepository.existsByEmail(request.getEmail())) {
+			throw new BusinessException("Email already exists");
+		}
+		if (customerRepository.existsByPhone(request.getPhone())) {
+			throw new BusinessException("Phone number already exists");
+		}
 
-        // Create User
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.CUSTOMER);
-        User savedUser = userRepository.save(user);
+		User user = new User();
+		user.setUsername(request.getUsername());
+		user.setPassword(passwordEncoder.encode(request.getPassword()));
+		user.setRole(Role.CUSTOMER);
+		User savedUser = userRepository.save(user);
 
-        // Create Customer
-        Customer customer = new Customer();
-        customer.setFullName(request.getFullName());
-        customer.setEmail(request.getEmail());
-        customer.setPhone(request.getPhone());
-        customer.setCreatedAt(LocalDateTime.now());
-        customer.setUser(savedUser);
-        customerRepository.save(customer);
-    }
+		Customer customer = new Customer();
+		customer.setFullName(request.getFullName());
+		customer.setEmail(request.getEmail());
+		customer.setPhone(request.getPhone());
+		customer.setCreatedAt(LocalDateTime.now());
+		customer.setUser(savedUser);
+		customerRepository.save(customer);
+	}
 }

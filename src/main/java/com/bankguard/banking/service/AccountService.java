@@ -132,12 +132,6 @@ public class AccountService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    @Transactional(readOnly = true)
-    public long getAccountCount(String username) {
-        Customer customer = getCustomerByUsername(username);
-        return accountRepository.findByCustomerId(customer.getId()).size();
-    }
-
     private Customer getCustomerByUsername(String username) {
         return customerRepository.findByUserUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));

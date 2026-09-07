@@ -29,7 +29,6 @@ public class BankTransaction {
 	@Column(nullable = false)
 	private LocalDateTime createdAt;
 
-	// ✅ YEH FIELD ADD KARO - Pehle missing thi!
 	@Column(length = 255)
 	private String description;
 
@@ -45,10 +44,6 @@ public class BankTransaction {
 	protected void onCreate() {
 		createdAt = LocalDateTime.now();
 	}
-
-	// =========================================================
-	// GETTERS AND SETTERS
-	// =========================================================
 
 	public Long getId() {
 		return id;
@@ -98,7 +93,6 @@ public class BankTransaction {
 		this.createdAt = createdAt;
 	}
 
-	// ✅ DESCRIPTION KE GETTER/SETTER
 	public String getDescription() {
 		return description;
 	}

@@ -3,7 +3,6 @@ package com.bankguard.banking.dto.response;
 import com.bankguard.banking.entity.TransactionStatus;
 import com.bankguard.banking.entity.TransactionType;
 import com.fasterxml.jackson.annotation.JsonFormat;
-
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -20,10 +19,8 @@ public class TransactionResponse {
     private String sourceAccountNumber;
     private Long destinationAccountId;
     private String destinationAccountNumber;
-    
-    // ✅ YEH FIELD ADD KARO
     private String description;
-    
+
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 }

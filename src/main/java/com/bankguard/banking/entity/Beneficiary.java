@@ -30,7 +30,6 @@ public class Beneficiary {
 	@JoinColumn(name = "customer_id", nullable = false)
 	private Customer customer;
 
-	// Getters and Setters
 	public Long getId() {
 		return id;
 	}

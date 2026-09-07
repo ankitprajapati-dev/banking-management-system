@@ -10,7 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface BeneficiaryRepository extends JpaRepository<Beneficiary, Long> {
-	
 	List<Beneficiary> findByCustomerIdAndStatus(Long customerId, BeneficiaryStatus status);
 
 	Optional<Beneficiary> findByIdAndCustomerIdAndStatus(Long id, Long customerId, BeneficiaryStatus status);

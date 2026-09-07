@@ -10,13 +10,13 @@ import java.time.LocalDateTime;
 
 @Data
 public class AccountResponse {
-	private Long id;
-	private String accountNumber;
-	private AccountType accountType;
-	private BigDecimal balance;
-	private AccountStatus status;
-	private Long customerId;
+    private Long id;
+    private String accountNumber;
+    private AccountType accountType;
+    private BigDecimal balance;
+    private AccountStatus status;
+    private Long customerId;
 
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	private LocalDateTime createdAt;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createdAt;
 }

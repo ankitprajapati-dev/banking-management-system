@@ -23,24 +23,26 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Create Admin
-        if (!userRepository.existsByUsername("admin")) {
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("Admin@123"));
-            admin.setRole(Role.ADMIN);
-            userRepository.save(admin);
-            log.info("✅ Admin user created: admin / Admin@123");
-        }
+        try {
+            if (!userRepository.existsByUsername("admin")) {
+                User admin = new User();
+                admin.setUsername("admin");
+                admin.setPassword(passwordEncoder.encode("Admin@123"));
+                admin.setRole(Role.ADMIN);
+                userRepository.save(admin);
+                log.info("Admin user created: admin / Admin@123");
+            }
 
-        // Create Test Customer
-        if (!userRepository.existsByUsername("customer")) {
-            User customer = new User();
-            customer.setUsername("customer");
-            customer.setPassword(passwordEncoder.encode("Customer@123"));
-            customer.setRole(Role.CUSTOMER);
-            userRepository.save(customer);
-            log.info("✅ Customer user created: customer / Customer@123");
+            if (!userRepository.existsByUsername("customer")) {
+                User customer = new User();
+                customer.setUsername("customer");
+                customer.setPassword(passwordEncoder.encode("Customer@123"));
+                customer.setRole(Role.CUSTOMER);
+                userRepository.save(customer);
+                log.info("✅ Customer user created: customer / Customer@123");
+            }
+        } catch (Exception e) {
+            log.warn("Database tables not ready yet. Please run the application again.");
         }
     }
 }

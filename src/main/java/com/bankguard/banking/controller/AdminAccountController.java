@@ -13,29 +13,29 @@ import java.util.List;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminAccountController {
 
-	private final AccountService accountService;
+    private final AccountService accountService;
 
-	public AdminAccountController(AccountService accountService) {
-		this.accountService = accountService;
-	}
+    public AdminAccountController(AccountService accountService) {
+        this.accountService = accountService;
+    }
 
-	@GetMapping
-	public ResponseEntity<List<AccountResponse>> getAllAccounts() {
-		return ResponseEntity.ok(accountService.getAllAccounts());
-	}
+    @GetMapping
+    public ResponseEntity<List<AccountResponse>> getAllAccounts() {
+        return ResponseEntity.ok(accountService.getAllAccounts());
+    }
 
-	@GetMapping("/{id}")
-	public ResponseEntity<AccountResponse> getAccountById(@PathVariable Long id) {
-		return ResponseEntity.ok(accountService.getAccountByIdForAdmin(id));
-	}
+    @GetMapping("/{id}")
+    public ResponseEntity<AccountResponse> getAccountById(@PathVariable Long id) {
+        return ResponseEntity.ok(accountService.getAccountByIdForAdmin(id));
+    }
 
-	@PutMapping("/{id}/block")
-	public ResponseEntity<AccountResponse> blockAccount(@PathVariable Long id) {
-		return ResponseEntity.ok(accountService.blockAccount(id));
-	}
+    @PutMapping("/{id}/block")
+    public ResponseEntity<AccountResponse> blockAccount(@PathVariable Long id) {
+        return ResponseEntity.ok(accountService.blockAccount(id));
+    }
 
-	@PutMapping("/{id}/unblock")
-	public ResponseEntity<AccountResponse> unblockAccount(@PathVariable Long id) {
-		return ResponseEntity.ok(accountService.unblockAccount(id));
-	}
+    @PutMapping("/{id}/unblock")
+    public ResponseEntity<AccountResponse> unblockAccount(@PathVariable Long id) {
+        return ResponseEntity.ok(accountService.unblockAccount(id));
+    }
 }

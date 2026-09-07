@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class NotificationService {
 
-	private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
+    private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
 
-	@Async
+    @Async
     public void sendTransactionAlert(String email, String name, TransactionResponse transaction) {
         try {
             String subject = "🔔 Transaction Alert - BankGuard";
@@ -34,8 +34,6 @@ public class NotificationService {
                     transaction.getCreatedAt()
             );
 
-            // Actually sending email would use JavaMailSender
-            // For now, just log it
             log.info("📧 Transaction Alert sent to: {}", email);
             log.info("Message: {}", body);
 
@@ -43,21 +41,4 @@ public class NotificationService {
             log.error("Failed to send notification: {}", e.getMessage());
         }
     }
-
-	@Async
-	public void sendOTPEmail(String email, String otp) {
-		try {
-			String subject = "🔐 Your OTP for BankGuard";
-			String body = String.format(
-					"Dear Customer,\n\n" + "Your OTP for authentication is: %s\n\n"
-							+ "This OTP is valid for 5 minutes.\n\n"
-							+ "If you did not request this, please ignore this email.\n\n" + "Regards,\nBankGuard Team",
-					otp);
-
-			log.info("📧 OTP sent to: {}", email);
-			log.info("OTP: {}", otp);
-		} catch (Exception e) {
-			log.error("Failed to send OTP: {}", e.getMessage());
-		}
-	}
 }
