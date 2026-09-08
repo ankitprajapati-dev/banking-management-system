@@ -1,119 +1,119 @@
 package com.bankguard.banking.entity;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "bank_transactions")
 public class BankTransaction {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@Column(nullable = false, unique = true)
-	private String transactionReference;
+    @Column(nullable = false, unique = true, length = 20)
+    private String transactionReference;
 
-	@Column(nullable = false, precision = 19, scale = 2)
-	private BigDecimal amount;
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal amount;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private TransactionType transactionType;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TransactionType transactionType;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private TransactionStatus status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TransactionStatus status;
 
-	@Column(nullable = false)
-	private LocalDateTime createdAt;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-	@Column(length = 255)
-	private String description;
+    @Column(length = 255)
+    private String description;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "source_account_id")
-	private Account sourceAccount;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_account_id")
+    private Account sourceAccount;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "destination_account_id")
-	private Account destinationAccount;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "destination_account_id")
+    private Account destinationAccount;
 
-	@PrePersist
-	protected void onCreate() {
-		createdAt = LocalDateTime.now();
-	}
+    public BankTransaction() {
+    }
 
-	public Long getId() {
-		return id;
-	}
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public Long getId() {
+        return id;
+    }
 
-	public String getTransactionReference() {
-		return transactionReference;
-	}
+    public String getTransactionReference() {
+        return transactionReference;
+    }
 
-	public void setTransactionReference(String transactionReference) {
-		this.transactionReference = transactionReference;
-	}
+    public void setTransactionReference(String transactionReference) {
+        this.transactionReference = transactionReference;
+    }
 
-	public BigDecimal getAmount() {
-		return amount;
-	}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public void setAmount(BigDecimal amount) {
-		this.amount = amount;
-	}
+    public BigDecimal getAmount() {
+        return amount;
+    }
 
-	public TransactionType getTransactionType() {
-		return transactionType;
-	}
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
 
-	public void setTransactionType(TransactionType transactionType) {
-		this.transactionType = transactionType;
-	}
+    public TransactionType getTransactionType() {
+        return transactionType;
+    }
 
-	public TransactionStatus getStatus() {
-		return status;
-	}
+    public void setTransactionType(TransactionType transactionType) {
+        this.transactionType = transactionType;
+    }
 
-	public void setStatus(TransactionStatus status) {
-		this.status = status;
-	}
+    public TransactionStatus getStatus() {
+        return status;
+    }
 
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
+    public void setStatus(TransactionStatus status) {
+        this.status = status;
+    }
 
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public Account getSourceAccount() {
-		return sourceAccount;
-	}
+    public Account getSourceAccount() {
+        return sourceAccount;
+    }
 
-	public void setSourceAccount(Account sourceAccount) {
-		this.sourceAccount = sourceAccount;
-	}
+    public void setSourceAccount(Account sourceAccount) {
+        this.sourceAccount = sourceAccount;
+    }
 
-	public Account getDestinationAccount() {
-		return destinationAccount;
-	}
+    public Account getDestinationAccount() {
+        return destinationAccount;
+    }
 
-	public void setDestinationAccount(Account destinationAccount) {
-		this.destinationAccount = destinationAccount;
-	}
+    public void setDestinationAccount(Account destinationAccount) {
+        this.destinationAccount = destinationAccount;
+    }
 }

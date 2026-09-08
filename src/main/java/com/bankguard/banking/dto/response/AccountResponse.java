@@ -1,15 +1,17 @@
 package com.bankguard.banking.dto.response;
 
-import com.bankguard.banking.entity.AccountStatus;
-import com.bankguard.banking.entity.AccountType;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Data;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.bankguard.banking.entity.AccountStatus;
+import com.bankguard.banking.entity.AccountType;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import lombok.Data;
+
 @Data
 public class AccountResponse {
+
     private Long id;
     private String accountNumber;
     private AccountType accountType;

@@ -1,14 +1,14 @@
 package com.bankguard.banking.repository;
 
-import com.bankguard.banking.entity.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.Optional;
 
-@Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-	Optional<User> findByUsername(String username);
+import org.springframework.data.jpa.repository.JpaRepository;
 
-	boolean existsByUsername(String username);
+import com.bankguard.banking.entity.User;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    Optional<User> findByUsername(String username);
+
+    boolean existsByUsername(String username);
 }
