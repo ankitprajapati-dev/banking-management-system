@@ -1,98 +1,129 @@
-# 🏦 Online Banking System - Spring Boot Application
-
-[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://adoptium.net/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.4-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue.svg)](https://www.postgresql.org/)
-[![JWT](https://img.shields.io/badge/JWT-Authentication-red.svg)](https://jwt.io/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
----
+# 🏦 BankGuard - Banking Management System
 
 ## 📖 Overview
 
-A comprehensive **RESTful online banking application** built with **Spring Boot**, featuring secure user authentication, account management, and financial transactions. This project demonstrates clean architecture, enterprise-level security, and best practices in Spring Boot development.
+**BankGuard** is a secure **RESTful Banking Management System** built using **Spring Boot**, **Spring Security**, **JWT authentication**, **Spring Data JPA**, and **PostgreSQL**.
+
+The application provides core banking functionality such as user registration and authentication, account management, beneficiary management, deposits, withdrawals, fund transfers, transaction history, and role-based administrative operations.
+
+The project follows a layered architecture with separate **Controller, Service, Repository, DTO, Entity, Exception, and Security** layers, making the application easier to maintain, test, and extend.
 
 ---
 
 ## ✨ Features
 
 ### 👤 User Management
-- User registration and authentication
-- JWT-based token security
-- Role-based access control (RBAC)
-- BCrypt password encryption
+
+* User registration and authentication
+* JWT-based authentication
+* BCrypt password hashing
+* Role-based access control
+* Customer and Admin roles
+* Secure logout using JWT token blacklisting
 
 ### 💳 Account Management
-- Create multiple account types (**SAVINGS**, **CURRENT**)
-- View account details and balance
-- Activate/Deactivate accounts
-- Multiple accounts per customer (max 5)
+
+* Create bank accounts
+* Support for **SAVINGS** and **CURRENT** account types
+* View account details
+* View all customer accounts
+* Calculate total account balance
+* Maximum of 5 accounts per customer
+* Account status management: **ACTIVE, BLOCKED, CLOSED**
+* Account ownership validation
 
 ### 💰 Transaction Management
-- Fund transfers between accounts
-- Deposit and withdrawal operations
-- Transaction history with pagination
-- Date range filtering for transactions
-- Transaction reference tracking
-- Mini statement (last 10 transactions)
+
+* Deposit money
+* Withdraw money
+* Transfer funds between accounts
+* Transaction reference generation and tracking
+* Transaction history
+* Date-range transaction filtering
+* Mini statement showing the latest 10 transactions
+* Transaction ownership validation
+* Daily outgoing transfer limit of **₹1,00,000**
+* Minimum balance validation of **₹500 for SAVINGS accounts**
+* Validation for active source and destination accounts
 
 ### 👥 Beneficiary Management
-- Add external account beneficiaries
-- Update beneficiary details
-- Soft delete (block) beneficiaries
-- IFSC code validation
-- Duplicate beneficiary prevention
+
+* Add beneficiaries
+* View active beneficiaries
+* Update beneficiary details
+* Soft delete/block beneficiaries
+* IFSC code validation
+* Duplicate beneficiary prevention
+* Customer ownership validation
 
 ### 🔐 Security Features
-- JWT authentication with 15-minute expiry
-- BCrypt password encryption
-- Role-based access (**CUSTOMER**, **ADMIN**)
-- Token blacklisting for logout
-- Account status validation (ACTIVE, BLOCKED, CLOSED)
-- Daily transaction limit (₹1,00,000)
-- Minimum balance validation (₹500 for savings)
+
+* JWT-based authentication
+* 15-minute JWT expiration
+* BCrypt password hashing
+* Role-based authorization
+* Customer/Admin access separation
+* JWT token blacklisting on logout
+* Stateless session management
+* Account status validation
+* Ownership-based access validation
+* Centralized exception handling
 
 ### 📚 API Documentation
-- Swagger/OpenAPI 3.0 integration
-- Interactive API testing via Swagger UI
+
+* Swagger / OpenAPI integration
+* Interactive API documentation
+* API testing through Swagger UI
 
 ---
 
 ## 🛠️ Technology Stack
 
-| Category | Technology | Version |
-|----------|------------|---------|
-| **Framework** | Spring Boot | 3.3.4 |
-| **Language** | Java | 21 |
-| **Database** | PostgreSQL | 15+ |
-| **Security** | Spring Security + JWT | JJWT 0.12.6 |
-| **ORM** | Spring Data JPA + Hibernate | - |
-| **API** | RESTful API with OpenAPI | - |
-| **Build Tool** | Maven | 3.9+ |
-| **Utilities** | Lombok, Jakarta Validation, SLF4J | - |
+| Category           | Technology                  | Version     |
+| ------------------ | --------------------------- | ----------- |
+| **Language**       | Java                        | 21          |
+| **Framework**      | Spring Boot                 | 3.3.4       |
+| **Security**       | Spring Security             | 6.x         |
+| **Authentication** | JWT                         | JJWT 0.12.6 |
+| **Database**       | PostgreSQL                  | 15+         |
+| **ORM**            | Spring Data JPA + Hibernate | 6.x         |
+| **API**            | RESTful API + OpenAPI       | 3.0         |
+| **Build Tool**     | Maven                       | 3.9+        |
+| **Validation**     | Jakarta Bean Validation     | -           |
+| **Utilities**      | Lombok, SLF4J               | -           |
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 banking-management-system/
 │
-├── src/main/java/com/bankguard/banking/
-│   ├── config/          # Configuration classes (Security, Web, Async)
-│   ├── controller/      # REST API controllers
-│   ├── dto/             # Data Transfer Objects (Request/Response)
-│   ├── entity/          # JPA entities
-│   ├── exception/       # Exception handling
-│   ├── repository/      # Data access layer
-│   ├── security/        # JWT and security utilities
-│   └── service/         # Business logic
+├── src/
+│   ├── main/
+│   │   ├── java/com/bankguard/banking/
+│   │   │
+│   │   ├── config/          # Application and security configuration
+│   │   ├── controller/      # REST API controllers
+│   │   ├── dto/
+│   │   │   ├── request/     # Request DTOs
+│   │   │   └── response/    # Response DTOs
+│   │   ├── entity/          # JPA entities and enums
+│   │   ├── exception/       # Custom exceptions and global handler
+│   │   ├── repository/      # Spring Data JPA repositories
+│   │   ├── security/        # JWT and authentication components
+│   │   └── service/         # Business logic
+│   │
+│   └── resources/
+│       └── application.properties
 │
-├── src/main/resources/
-│   └── application.properties  # Configuration properties
+├── src/test/
+│   └── resources/
+│       └── application.properties
 │
-├── pom.xml              # Maven dependencies
-└── README.md            # This file
+├── pom.xml                  # Maven configuration
+├── README.md
+└── LICENSE
 ```
 
 ---
@@ -101,75 +132,150 @@ banking-management-system/
 
 ### Prerequisites
 
-- Java 21 or higher
-- Maven 3.9.0 or higher
-- PostgreSQL 15+ (for production)
-- Postman or cURL (for API testing)
+Make sure the following are installed:
 
-### Installation
+* Java 21 or higher
+* Maven 3.9 or higher
+* PostgreSQL 15 or higher
+* Eclipse / Spring Tool Suite (optional)
+* Postman or another REST API client
 
-**1. Clone the repository**
+---
+
+### 1. Clone the Repository
+
 ```bash
-git clone https://github.com/YOUR_USERNAME/banking-management-system.git
+git clone https://github.com/ankitprajapati-dev/banking-management-system.git
+
 cd banking-management-system
 ```
 
-**2. Setup PostgreSQL database**
-```bash
-psql -U postgres
+---
+
+### 2. Create the PostgreSQL Database
+
+Open PostgreSQL and create the database:
+
+```sql
 CREATE DATABASE banking_management;
-\q
 ```
 
-**3. Configure environment variables**
-Create `.env` file in project root:
-```properties
-DB_PASSWORD=your_password
-JWT_SECRET=your_32_character_secret_key
+The application will connect to:
+
+```text
+jdbc:postgresql://localhost:5432/banking_management
 ```
 
-**4. Build the project**
+---
+
+### 3. Configure Environment Variables
+
+The application keeps sensitive configuration outside the source code.
+
+#### Required Environment Variables
+
+```text
+DB_PASSWORD=your_postgresql_password
+JWT_SECRET=your_base64_secret_key
+ADMIN_PASSWORD=your_admin_password
+```
+
+The application also supports an optional admin username:
+
+```text
+ADMIN_USERNAME=admin
+```
+
+If `ADMIN_USERNAME` is not provided, the default value is:
+
+```text
+admin
+```
+
+### Important
+
+Do **not** commit real passwords, JWT secrets, or database credentials to GitHub.
+
+---
+
+### 4. Build the Project
+
 ```bash
-mvn clean install
+mvn clean verify
 ```
 
-**5. Run the application**
+A successful build should show:
+
+```text
+BUILD SUCCESS
+```
+
+---
+
+### 5. Run the Application
+
+Using Maven:
+
 ```bash
 mvn spring-boot:run
 ```
 
-**Application starts on:** `http://localhost:8080/api`
+Or run:
+
+```text
+BankingManagementSystemApplication.java
+```
+
+from Eclipse / Spring Tool Suite using:
+
+```text
+Run As → Spring Boot App
+```
+
+The application runs on:
+
+```text
+http://localhost:8080/api
+```
 
 ---
 
-## 🔗 API Endpoints
+# 🔗 API Endpoints
 
-### 🔐 Authentication Endpoints
+> All protected endpoints require a valid JWT Bearer token unless explicitly marked as public.
 
-#### Register User
-**POST** `/api/auth/register`
+## 🔐 Authentication Endpoints
 
-**Request body:**
+### Register User
+
+**POST**
+
+```text
+/api/auth/register
+```
+
+#### Request Body
+
 ```json
 {
   "username": "john_doe",
   "password": "SecurePass123",
   "fullName": "John Doe",
   "email": "john@example.com",
-  "phone": "9876543210",
-  "address": "123 Main St",
-  "city": "New York",
-  "state": "NY",
-  "pincode": "10001",
-  "panNumber": "ABCDE1234F",
-  "acceptTerms": true
+  "phone": "9876543210"
 }
 ```
 
-#### Login User
-**POST** `/api/auth/login`
+### Login User
 
-**Request body:**
+**POST**
+
+```text
+/api/auth/login
+```
+
+#### Request Body
+
 ```json
 {
   "username": "john_doe",
@@ -177,7 +283,8 @@ mvn spring-boot:run
 }
 ```
 
-**Response:**
+#### Response
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIs...",
@@ -187,43 +294,79 @@ mvn spring-boot:run
 }
 ```
 
-#### Logout
-**POST** `/api/auth/logout`  
-**Headers:** `Authorization: Bearer <token>`
+### Logout
 
----
+**POST**
 
-### 💳 Account Endpoints
+```text
+/api/auth/logout
+```
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/accounts` | Create new account | ✅ Bearer Token |
-| GET | `/api/accounts` | Get all user accounts | ✅ Bearer Token |
-| GET | `/api/accounts/{id}` | Get account by ID | ✅ Bearer Token |
-| GET | `/api/accounts/balance/total` | Get total balance | ✅ Bearer Token |
+#### Header
 
-**Create Account Request Body:**
-```json
-{
-  "accountType": "SAVINGS",
-  "initialBalance": 1000.00
-}
+```text
+Authorization: Bearer <token>
 ```
 
 ---
 
-### 💰 Transaction Endpoints
+# 💳 Account Endpoints
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/transactions/deposit` | Deposit money | ✅ Bearer Token |
-| POST | `/api/transactions/withdraw` | Withdraw money | ✅ Bearer Token |
-| POST | `/api/transactions/transfer` | Transfer funds | ✅ Bearer Token |
-| GET | `/api/transactions` | Get all transactions | ✅ Bearer Token |
-| GET | `/api/transactions/mini-statement` | Last 10 transactions | ✅ Bearer Token |
-| GET | `/api/transactions/{id}` | Get transaction by ID | ✅ Bearer Token |
+| Method | Endpoint                      | Description               | Authentication |
+| ------ | ----------------------------- | ------------------------- | -------------- |
+| POST   | `/api/accounts`               | Create a new account      | ✅ Bearer Token |
+| GET    | `/api/accounts`               | Get all customer accounts | ✅ Bearer Token |
+| GET    | `/api/accounts/{id}`          | Get account by ID         | ✅ Bearer Token |
+| GET    | `/api/accounts/balance/total` | Get total balance         | ✅ Bearer Token |
 
-**Deposit/Withdraw Request Body:**
+### Create Account
+
+**POST**
+
+```text
+/api/accounts
+```
+
+#### Request Body
+
+```json
+{
+  "accountType": "SAVINGS"
+}
+```
+
+Supported account types:
+
+```text
+SAVINGS
+CURRENT
+```
+
+A newly created account starts with a zero balance. Funds can then be added using the deposit endpoint.
+
+---
+
+# 💰 Transaction Endpoints
+
+| Method | Endpoint                           | Description                | Authentication |
+| ------ | ---------------------------------- | -------------------------- | -------------- |
+| POST   | `/api/transactions/deposit`        | Deposit money              | ✅ Bearer Token |
+| POST   | `/api/transactions/withdraw`       | Withdraw money             | ✅ Bearer Token |
+| POST   | `/api/transactions/transfer`       | Transfer funds             | ✅ Bearer Token |
+| GET    | `/api/transactions`                | Get transaction history    | ✅ Bearer Token |
+| GET    | `/api/transactions/mini-statement` | Get latest 10 transactions | ✅ Bearer Token |
+| GET    | `/api/transactions/{id}`           | Get transaction by ID      | ✅ Bearer Token |
+
+### Deposit
+
+**POST**
+
+```text
+/api/transactions/deposit
+```
+
+#### Request Body
+
 ```json
 {
   "accountId": 1,
@@ -232,7 +375,34 @@ mvn spring-boot:run
 }
 ```
 
-**Transfer Request Body:**
+### Withdraw
+
+**POST**
+
+```text
+/api/transactions/withdraw
+```
+
+#### Request Body
+
+```json
+{
+  "accountId": 1,
+  "amount": 1000.00,
+  "description": "ATM withdrawal"
+}
+```
+
+### Transfer
+
+**POST**
+
+```text
+/api/transactions/transfer
+```
+
+#### Request Body
+
 ```json
 {
   "accountId": 1,
@@ -242,18 +412,47 @@ mvn spring-boot:run
 }
 ```
 
+### Transaction History
+
+**GET**
+
+```text
+/api/transactions
+```
+
+Supports transaction history retrieval and date-range filtering according to the API implementation.
+
+### Mini Statement
+
+**GET**
+
+```text
+/api/transactions/mini-statement
+```
+
+Returns the latest **10 transactions** for the authenticated customer.
+
 ---
 
-### 👥 Beneficiary Endpoints
+# 👥 Beneficiary Endpoints
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/beneficiaries` | Add beneficiary | ✅ Bearer Token |
-| GET | `/api/beneficiaries` | Get all beneficiaries | ✅ Bearer Token |
-| PUT | `/api/beneficiaries/{id}` | Update beneficiary | ✅ Bearer Token |
-| DELETE | `/api/beneficiaries/{id}` | Delete beneficiary | ✅ Bearer Token |
+| Method | Endpoint                  | Description              | Authentication |
+| ------ | ------------------------- | ------------------------ | -------------- |
+| POST   | `/api/beneficiaries`      | Add beneficiary          | ✅ Bearer Token |
+| GET    | `/api/beneficiaries`      | Get active beneficiaries | ✅ Bearer Token |
+| PUT    | `/api/beneficiaries/{id}` | Update beneficiary       | ✅ Bearer Token |
+| DELETE | `/api/beneficiaries/{id}` | Block beneficiary        | ✅ Bearer Token |
 
-**Add Beneficiary Request Body:**
+### Add Beneficiary
+
+**POST**
+
+```text
+/api/beneficiaries
+```
+
+#### Request Body
+
 ```json
 {
   "nickname": "Rahul's Account",
@@ -263,25 +462,44 @@ mvn spring-boot:run
 }
 ```
 
----
-
-### 👑 Admin Endpoints (ADMIN Role Required)
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/admin/accounts` | Get all accounts | ✅ Bearer Token |
-| PUT | `/api/admin/accounts/{id}/block` | Block account | ✅ Bearer Token |
-| PUT | `/api/admin/accounts/{id}/unblock` | Unblock account | ✅ Bearer Token |
+The beneficiary delete operation is implemented as a **soft delete/block**, so the beneficiary record is retained in the database.
 
 ---
 
-### 🏥 Health Check
+# 👑 Admin Endpoints
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/health` | Application health | ❌ Public |
+Admin endpoints require the **ADMIN** role.
 
-**Response:**
+| Method | Endpoint                           | Description      | Authentication |
+| ------ | ---------------------------------- | ---------------- | -------------- |
+| GET    | `/api/admin/accounts`              | Get all accounts | ✅ ADMIN        |
+| PUT    | `/api/admin/accounts/{id}/block`   | Block account    | ✅ ADMIN        |
+| PUT    | `/api/admin/accounts/{id}/unblock` | Unblock account  | ✅ ADMIN        |
+
+Customers attempting to access admin endpoints receive:
+
+```text
+403 Forbidden
+```
+
+---
+
+# 🏥 Health Check
+
+**GET**
+
+```text
+/api/health
+```
+
+Authentication:
+
+```text
+Public
+```
+
+Example response:
+
 ```json
 {
   "status": "UP"
@@ -290,179 +508,286 @@ mvn spring-boot:run
 
 ---
 
-## 🗄️ Database Configuration
+# 🗄️ Database Configuration
 
-### For Development (H2 Database)
-```properties
-spring.datasource.url=jdbc:h2:mem:banking_db
-spring.datasource.driverClassName=org.h2.Driver
-spring.datasource.username=sa
-spring.datasource.password=
-spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
+The application uses **PostgreSQL** as its database.
+
+### Database
+
+```text
+Database Name: banking_management
+Username: postgres
+Port: 5432
 ```
 
-### For Production (PostgreSQL)
+### Main Configuration
+
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/banking_management
 spring.datasource.username=postgres
 spring.datasource.password=${DB_PASSWORD}
+
 spring.jpa.hibernate.ddl-auto=update
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 ```
+
+The PostgreSQL password is provided through the `DB_PASSWORD` environment variable.
 
 ---
 
-## 🔐 Security Configuration
+# 🔐 Security Configuration
 
-| Component | Configuration |
-|-----------|---------------|
-| **Token Type** | JWT (JSON Web Token) |
-| **Secret Key** | `JWT_SECRET` environment variable |
-| **Expiration** | 900000 ms (15 minutes) |
-| **Algorithm** | HS256 |
-| **Password Encoding** | BCrypt |
-| **Min Password Length** | 8 characters |
+| Security Component | Configuration             |
+| ------------------ | ------------------------- |
+| Authentication     | JWT                       |
+| Token Type         | Bearer                    |
+| JWT Expiration     | 15 minutes                |
+| Algorithm          | HS256                     |
+| Password Hashing   | BCrypt                    |
+| Authorization      | Role-Based Access Control |
+| Session Management | Stateless                 |
+| Logout             | JWT Token Blacklisting    |
 
 ### Access Control
-| Endpoint Type | Access |
-|---------------|--------|
-| `/api/auth/**`, `/api/health` | Public |
-| `/api/**` (except auth) | Authenticated |
-| `/api/admin/**` | ADMIN role required |
 
-### Default Credentials
-| Role | Username | Password |
-|------|----------|----------|
-| **ADMIN** | admin | Admin@123 |
-| **CUSTOMER** | customer | Customer@123 |
+| Endpoint                  | Access              |
+| ------------------------- | ------------------- |
+| `/api/auth/**`            | Public              |
+| `/api/health`             | Public              |
+| `/api/admin/**`           | ADMIN only          |
+| Other `/api/**` endpoints | Authenticated users |
 
 ---
 
-## 📊 Project Features Summary
+## 👤 Roles
 
-| Feature | Status |
-|---------|--------|
-| JWT Authentication | ✅ |
-| Role-Based Access | ✅ |
-| Account Management | ✅ |
-| Transactions (Deposit/Withdraw/Transfer) | ✅ |
-| Beneficiary Management | ✅ |
-| Daily Transaction Limit | ✅ |
-| Minimum Balance Validation | ✅ |
-| Swagger Documentation | ✅ |
-| Global Exception Handling | ✅ |
-| Pagination Support | ✅ |
+### CUSTOMER
 
----
+Customers can:
 
-## ⚠️ Known Limitations
+* Manage their own accounts
+* View their accounts
+* Perform deposits and withdrawals
+* Transfer funds
+* Manage beneficiaries
+* View their transaction history
 
-- No email notifications for transactions
-- No SMS alerts
-- No interest calculation for savings accounts
-- No overdraft protection
-- No audit logging for admin actions
+### ADMIN
+
+Administrators can:
+
+* View all accounts
+* Block accounts
+* Unblock accounts
 
 ---
 
-## 🚀 Planned Enhancements
+# 📊 Business Rules
 
-- Email notifications for transactions
-- SMS alerts
-- 2FA (Two-Factor Authentication)
-- PDF statement generation
-- Dashboard analytics
-- Scheduled interest calculation
-- Unit and integration tests
+The application implements the following core banking validations:
+
+### Account Limit
+
+A customer can create a maximum of:
+
+```text
+5 accounts
+```
+
+### Minimum Savings Balance
+
+For SAVINGS accounts:
+
+```text
+₹500 minimum balance
+```
+
+### Daily Transfer Limit
+
+Maximum outgoing transfer amount per day:
+
+```text
+₹1,00,000
+```
+
+### Account Status
+
+Transactions are allowed only for:
+
+```text
+ACTIVE
+```
+
+accounts.
+
+Blocked or closed accounts cannot perform normal banking operations.
+
+### Transaction Validation
+
+The application validates:
+
+* Account ownership
+* Account existence
+* Account status
+* Positive transaction amount
+* Sufficient balance
+* Source and destination account validity
+* Same-account transfer prevention
+* Daily transfer limit
+* Savings minimum balance
 
 ---
 
-## 🧪 Testing
+# 🧪 Testing
 
-### Using Postman
-1. Import API endpoints
-2. Register user and get JWT token
-3. Add token to Authorization header
-4. Test endpoints
+The project was tested using:
 
-### Using cURL
+* Maven test execution
+* Eclipse / Spring Tool Suite
+* Postman
+* PostgreSQL database
+
+### Maven Test
+
+Run:
+
 ```bash
-# Register
-curl -X POST http://localhost:8080/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username":"john_doe",
-    "password":"SecurePass123",
-    "fullName":"John Doe",
-    "email":"john@example.com",
-    "phone":"9876543210",
-    "address":"123 Main St",
-    "city":"New York",
-    "state":"NY",
-    "pincode":"10001",
-    "panNumber":"ABCDE1234F",
-    "acceptTerms":true
-  }'
+mvn clean verify
+```
 
-# Login
-curl -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username":"john_doe",
-    "password":"SecurePass123"
-  }'
+Expected result:
 
-# Create Account
-curl -X POST http://localhost:8080/api/accounts \
-  -H "Authorization: Bearer <your_token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "accountType":"SAVINGS",
-    "initialBalance":1000.00
-  }'
+```text
+Tests run: 1
+Failures: 0
+Errors: 0
+Skipped: 0
+
+BUILD SUCCESS
+```
+
+### API Testing with Postman
+
+Recommended flow:
+
+```text
+1. Register a customer
+2. Login and obtain JWT token
+3. Create an account
+4. Deposit funds
+5. Withdraw funds
+6. Create another account
+7. Transfer funds
+8. Add beneficiary
+9. View transaction history
+10. Test admin authorization
+```
+
+Security scenarios should also be tested:
+
+```text
+No token → 401 Unauthorized
+Customer → Admin endpoint → 403 Forbidden
+Invalid resource → 404 Not Found
 ```
 
 ---
 
-## 🔧 Troubleshooting
+# 📚 API Documentation
 
-| Issue | Solution |
-|-------|----------|
-| Port 8080 already in use | Change `server.port=8081` in `application.properties` |
-| Database connection error | Ensure PostgreSQL is running: `net start postgresql` |
-| JWT token validation failure | Ensure `JWT_SECRET` is set and at least 32 characters |
+Swagger UI is available through the application's OpenAPI configuration.
+
+Typical endpoint:
+
+```text
+/api/swagger-ui/index.html
+```
+
+OpenAPI specification:
+
+```text
+/api/v3/api-docs
+```
 
 ---
 
-## 🤝 Contributing
+# ⚠️ Known Limitations
+
+The current version intentionally focuses on core banking functionality.
+
+The following features are not currently implemented:
+
+* Email transaction notifications
+* SMS notifications
+* Two-factor authentication
+* PDF bank statement generation
+* Advanced dashboard analytics
+* Automated interest calculation
+* Full audit logging for administrative actions
+* Production-grade distributed token/session management
+
+---
+
+# 🚀 Future Enhancements
+
+Potential future improvements include:
+
+* Email and SMS notifications
+* Two-factor authentication
+* PDF statement generation
+* Banking dashboard and analytics
+* Automated savings interest calculation
+* Advanced audit logging
+* Improved test coverage
+* Production-ready deployment configuration
+* Containerization using Docker
+
+---
+
+# 🔧 Troubleshooting
+
+| Issue                        | Solution                                                     |
+| ---------------------------- | ------------------------------------------------------------ |
+| Port 8080 already in use     | Change `server.port` in `application.properties`             |
+| PostgreSQL connection failed | Make sure PostgreSQL is running and `DB_PASSWORD` is correct |
+| Database does not exist      | Create `banking_management` database                         |
+| JWT startup/validation error | Verify `JWT_SECRET` is configured correctly                  |
+| Admin initialization error   | Verify `ADMIN_PASSWORD` is configured                        |
+| 401 Unauthorized             | Login again and provide a valid Bearer token                 |
+| 403 Forbidden                | Verify that the authenticated user has the required role     |
+
+---
+
+# 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+3. Make your changes
+4. Test the application
+5. Commit your changes
+6. Push the branch
+7. Create a Pull Request
 
 ---
 
-## 📄 License
+# 📄 License
 
 This project is licensed under the **MIT License**.
 
 ---
 
-## 📬 Contact
+# 📬 Contact
 
 **Ankit Prajapati**
-- Email: aankit1645@gmail.com
-- GitHub: [github.com/ankitprajapati-dev](https://github.com/ankitprajapati-dev)
+
+* Email: [aankit1645@gmail.com](mailto:aankit1645@gmail.com)
+* GitHub: [ankitprajapati-dev](https://github.com/ankitprajapati-dev)
 
 ---
 
-⭐ **If you found this project helpful, please give it a star!** ⭐
+⭐ **If you found this project useful, consider giving the repository a star!** ⭐
 
 ---
 
-**Last Updated:** September 2026  
+**Last Updated:** September 2026
+
 **Version:** 1.0.0
